@@ -1,0 +1,279 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+int convertStrToByteCode(const char *str, unsigned char inst[], int size);
+
+int main(int argc, char **argv) {
+  FILE *pFile = NULL;
+
+  char buffer[15];
+
+  if (argc < 2) {
+    pFile = fopen("./test2.txt", "r");
+  } else {
+    pFile = fopen(argv[1], "r");
+  }
+
+  if (pFile == NULL) {
+    printf("Error open test file, please make sure they exist.\n");
+
+    return 0;
+  }
+
+  while (fgets(buffer, 15, pFile) && strlen(buffer) > 1) {
+    // This unsigned char array stores an instruction read from the file
+    // As the largest y86 instruction is 6 bytes, there are 6 unsigned char in
+    // the array where each represents a byte.
+    unsigned char instruction[6] = {0, 0, 0, 0, 0, 0};
+    convertStrToByteCode(buffer, instruction, 6);
+
+    // TODO: From here, your task is to complete the implementation so that all
+    // y86 opcodes can be disassembled. Any undisassembled opcode should display
+    // as "TODO: undisassembled opcode" printf("%X\n", instruction[0]);
+    returnInstruction(instruction[0], instruction[1], instruction[2],
+                      instruction[3], instruction[4], instruction[5]);
+  }
+
+  fclose(pFile);
+
+  return 0;
+}
+
+/****************************************************************************
+N.B. You do not need to modify or work in this function.
+Description:
+This function converts a line of machine code read from the text file
+into machine byte code.
+The machine code is stored in an unsigned char array.
+******************************************************************************/
+int convertStrToByteCode(const char *str, unsigned char inst[], int size) {
+  int numHexDigits = 0;
+  char *endstr;
+  // Each instruction should consist of at most 12 hex digits
+  numHexDigits = strlen(str) - 1;
+  // Convert the string to integer, N.B. this integer is in decimal
+  long long value = strtol(str, &endstr, 16);
+
+  int numBytes = numHexDigits >> 1;
+  int byteCount = numHexDigits >> 1;
+
+  while (byteCount > 0) {
+    unsigned long long mask = 0xFF;
+    unsigned long shift = (numBytes - byteCount) << 3;
+
+    inst[byteCount - 1] = (value & (mask << shift)) >> shift;
+    byteCount--;
+  }
+
+  // Return the size of the instruction in bytes
+  return numHexDigits >> 1;
+}
+
+// A function to print the instruction listed
+int returnInstruction(instruction, registers, byte2, byte3, byte4, byte5) {
+  if (instruction == 0x10) {
+    // print the mnemonic
+    printf("nop ");
+    // initialise a string to store the instruction mnemonics
+    char ins[4] = "nop";
+    printf("\n");
+  } else if (instruction == 0x90) {
+    printf("ret ");
+    char ins[4] = "ret";
+    printf("\n");
+  } else if (instruction == 0x60) {
+    printf("addl ");
+    char ins[4] = "addl";
+    // call a function to determine the registers used passing the 2nd byte in
+    // the char array as a parameter
+    returnRegisters(registers);
+    printf("\n");
+  } else if (instruction == 0x62) {
+    printf("andl ");
+    char ins[4] = "andl";
+    returnRegisters(registers);
+    printf("\n");
+  } else if (instruction == 0x61) {
+    printf("subl ");
+    char ins[4] = "subl";
+    returnRegisters(registers);
+    printf("\n");
+  } else if (instruction == 0x63) {
+    printf("xorl ");
+    char ins[4] = "xorl";
+    returnRegisters(registers);
+    printf("\n");
+  } else if (instruction == 0x20) {
+    printf("rrmovl ");
+    char ins[6] = "rrmovl";
+    returnRegisters(registers);
+    printf("\n");
+  } else if (instruction == 0x21) {
+    printf("cmovle ");
+    char ins[6] = "cmovle";
+    returnRegisters(registers);
+    printf("\n");
+  } else if (instruction == 0x23) {
+    printf("cmove ");
+    char ins[5] = "cmove";
+    returnRegisters(registers);
+    printf("\n");
+  } else if (instruction == 0x22) {
+    printf("cmovl ");
+    char ins[5] = "cmovl";
+    returnRegisters(registers);
+    printf("\n");
+  } else if (instruction == 0x24) {
+    printf("cmovne ");
+    char ins[6] = "cmovne";
+    returnRegisters(registers);
+    printf("\n");
+  } else if (instruction == 0x26) {
+    printf("cmovg ");
+    char ins[5] = "cmovg";
+    returnRegisters(registers);
+    printf("\n");
+  } else if (instruction == 0x25) {
+    printf("cmovge ");
+    char ins[6] = "cmovge";
+    returnRegisters(registers);
+    printf("\n");
+  } else if (instruction == 0xA0) {
+    printf("pushl ");
+    char ins[5] = "pushl";
+    returnRegisters(registers);
+    printf("\n");
+  } else if (instruction == 0xB0) {
+    printf("popl ");
+    char ins[4] = "popl";
+    returnRegisters(registers);
+    printf("\n");
+  } else if (instruction == 0x0) {
+    printf("halt ");
+    char ins[4] = "halt";
+  } else if (instruction == 0x30) {
+    printf("irmovl ");
+    char ins[6] = "irmovl";
+    returnRegisters(registers, ins);
+    // call a function which will determine the 32 bit signed in using the bytes
+    // stored in the instruction array and print the value returned
+    printf("%i \n", thirtyTwoBitSignedInt(byte2, byte3, byte4, byte5));
+  } else if (instruction == 0x40) {
+    printf("rmmovl ");
+    char ins[6] = "rmmovl";
+    returnRegisters(registers);
+    printf("%i \n", thirtyTwoBitSignedInt(byte2, byte3, byte4, byte5));
+  } else if (instruction == 0x50) {
+    printf("mrmovl ");
+    char ins[6] = "mrmovl";
+    returnRegisters(registers);
+    printf("%i \n", thirtyTwoBitSignedInt(byte2, byte3, byte4, byte5));
+  } else if (instruction == 0x70) {
+    printf("jmp ");
+    char ins[3] = "jmp";
+    // Calls a function which will determine the jump destination of the the
+    // instruction using the 32 bits from the instruction As branch instruction
+    // do not use registers the value stored in the variable registers
+    // represents "byte1" and the 5th byte is no used by branch instructions The
+    // result of this is then printed to the screen
+    printf("%i\n", jumpDest(registers, byte2, byte3, byte4));
+  } else if (instruction == 0x71) {
+    printf("jle ");
+    char ins[3] = "jle";
+    printf("%i\n", jumpDest(registers, byte2, byte3, byte4));
+    // returnRegisters(registers);
+  } else if (instruction == 0x72) {
+    printf("jl ");
+    char ins[2] = "jl";
+    printf("%i\n", jumpDest(registers, byte2, byte3, byte4));
+    // returnRegisters(registers);
+  } else if (instruction == 0x73) {
+    printf("je ");
+    char ins[2] = "je";
+    printf("%i\n", jumpDest(registers, byte2, byte3, byte4));
+    // returnRegisters(registers);
+  } else if (instruction == 0x74) {
+    printf("jne ");
+    char ins[3] = "jne";
+    printf("%i\n", jumpDest(registers, byte2, byte3, byte4));
+    // returnRegisters(registers);
+  } else if (instruction == 0x75) {
+    printf("jge ");
+    char ins[3] = "jge";
+    printf("%i\n", jumpDest(registers, byte2, byte3, byte4));
+    // returnRegisters(registers);
+  } else if (instruction == 0x76) {
+    printf("jg ");
+    char ins[2] = "jg";
+    printf("%i\n", jumpDest(registers, byte2, byte3, byte4));
+    // returnRegisters(registers);
+  } else if (instruction == 0x80) {
+    printf("call ");
+    char ins[4] = "call";
+    printf("%i\n", jumpDest(registers, byte2, byte3, byte4));
+    // returnRegisters(registers);
+  }
+  return 0;
+}
+// This is the function which determines the register being used
+int returnRegisters(registers, ins) {
+  // inintialise a string of size 16 to store the register mnemonics
+  char reg[16];
+  // store the hex value of the registers as the char array/string reg so both
+  // elements can be accessed
+  sprintf(reg, "%x", registers);
+
+  // initialise a for loop to iterate through reg looking at each element and
+  // then compare to detmeine the registers being used
+  for (int i = 0; i < 2; i++) {
+
+    if (reg[i] == '0') {
+      // print the register to the screen
+      printf("%%eax ");
+      // store the register as a string
+      char registring[5] = "%%eax";
+    } else if (reg[i] == '1') {
+      printf("%%ecx ");
+      char registring[5] = "%%ecx";
+    } else if (reg[i] == '2') {
+      printf("%%edx ");
+      char registring[5] = "%%edx";
+    } else if (reg[i] == '3') {
+      printf("%%ebx ");
+      char registring[5] = "%%ebx";
+    } else if (reg[i] == '4') {
+      printf("%%esp ");
+      char registring[5] = "%%esp";
+    } else if (reg[i] == '5') {
+      printf("%%ebp ");
+      char registring[5] = "%%ebp";
+    } else if (reg[i] == '6') {
+      printf("%%esi ");
+      char registring[5] = "%%esi";
+    } else if (reg[i] == '7') {
+      printf("%%edi ");
+      char registring[5] = "%%edi";
+    }
+  }
+  // printf("\n");
+  // printf("%s",ins);
+  return 0;
+}
+
+// This is the function which determines the destination address of the jump
+// instruction
+int jumpDest(destinationByte1, destinationByte2, destinationByte3,
+             destinationByte4) {
+  int dest =
+      destinationByte1 + destinationByte2 + destinationByte3 + destinationByte4;
+  // return the integer so it can be outputted to the screen
+  return dest;
+}
+
+// This is the function which determines the 32 bit signed integer
+int thirtyTwoBitSignedInt(byte2, byte3, byte4, byte5) {
+  int th2BitSignedInt = byte2 + byte3 + byte4 + byte5;
+  // return the integer so it can be outputted to the screen
+  return th2BitSignedInt;
+}
