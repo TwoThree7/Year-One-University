@@ -1,0 +1,274 @@
+import java.util.ArrayList;
+import java.util.Scanner;
+import java.util.Collections;
+import java.text.NumberFormat;
+import java.util.Locale;
+
+public class Main {
+  public static void main(String[] args) {
+    boolean inMenu = true;
+    System.out.println("Portfollio 2");
+    System.out.println("____________\n\n");
+
+    // A 2d array storing the names of volunteers and the number of kits handed out
+    String volunteerTable[][] = { { "Sofya", "Steve", "Muhammed", "Amaara", "John", "Tony" },
+        { "127", "46", "273", "129", "129", "17" } };
+
+    // Instantiating the teamMember objects
+    TeamMember Sofya = new TeamMember(volunteerTable[0][0], Integer.valueOf(volunteerTable[1][0]),1);
+    TeamMember Steve = new TeamMember(volunteerTable[0][1], Integer.valueOf(volunteerTable[1][1]),2);
+    TeamMember Muhammed = new TeamMember(volunteerTable[0][2], Integer.valueOf(volunteerTable[1][2]),3);
+    TeamMember Amaara = new TeamMember(volunteerTable[0][3], Integer.valueOf(volunteerTable[1][3]),4);
+    TeamMember John = new TeamMember(volunteerTable[0][4], Integer.valueOf(volunteerTable[1][4]),5);
+    TeamMember Tony = new TeamMember(volunteerTable[0][5], Integer.valueOf(volunteerTable[1][5]),6);
+    //create a team leader object
+    TeamLeader Sarah = new TeamLeader("Sarah",345,0,"Team Leader");
+
+    // calling the print stats method of these objects
+    while (inMenu){
+      System.out.println("1. Display table\n2. Add Tests");
+
+      //simple menu
+      Scanner menu = new Scanner(System.in);
+      int choice = menu.nextInt();
+      if (choice == 1){
+        //sort the stats
+        ArrayList<Integer> testArr = new ArrayList<Integer>();
+        for (int i = 0; i < volunteerTable[0].length; i++){
+          testArr.add(Integer.valueOf(volunteerTable[1][i]));
+        }
+        //print the team leaders stats first
+        //Sarah.printRow();
+        //print the team mebers stats in decending order
+        String headingOne = "Name";
+        String headingTwo = "Tests";
+        String headingThree = "Compensation";
+        String header = String.format("|%-12s|%-12s|%-12s|",headingOne,headingTwo,headingThree);
+        System.out.println(header);
+        Sarah.printRow();
+        Collections.sort(testArr, Collections.reverseOrder());
+        for (int x : testArr){
+          if(x==Sofya.testsDelivered){
+            Sofya.printRow();
+          }
+          else if(x==Steve.testsDelivered){
+            Steve.printRow();
+          }
+          else if(x==Muhammed.testsDelivered){
+            Muhammed.printRow();
+          }
+          else if(x==Amaara.testsDelivered){
+            Amaara.printRow();
+          }
+          else if (x==John.testsDelivered){
+            John.printRow();
+          }
+          else if (x==Tony.testsDelivered){
+            Tony.printRow();
+          }
+        }
+      }
+      //add tests menu which takes employee number as an input
+      // else if (choice == 2){
+      //   Sofya.printRow();
+      //   Steve.printRow();
+      //   Muhammed.printRow();
+      //   Amaara.printRow();
+      //   John.printRow();
+      //   Tony.printRow();
+      // }
+      else if (choice ==2){
+        Scanner input = new Scanner(System.in);
+        System.out.println("Employee Number: ");
+        int empInput = input.nextInt();
+
+
+        
+        if (empInput == 1) {
+          Sofya.printStats();
+          Scanner moreTests = new Scanner(System.in);
+          System.out.println("How many more tests: ");
+          Sofya.addTests(moreTests.nextInt(),Sofya.employeeNumber,volunteerTable);
+          System.out.println("New Stats\n");
+          Sofya.printStats();
+        }
+        else if (empInput == 2){
+          Steve.printStats();
+          Scanner moreTests = new Scanner(System.in);
+          System.out.println("How many more tests: ");
+          Steve.addTests(moreTests.nextInt(),Steve.employeeNumber,volunteerTable);
+          System.out.println("New Stats\n");
+          Steve.printStats();
+        }
+        else if (empInput == 3){
+          Muhammed.printStats();
+          Scanner moreTests = new Scanner(System.in);
+          System.out.println("How many more tests: ");
+          Muhammed.addTests(moreTests.nextInt(),Muhammed.employeeNumber,volunteerTable);
+          System.out.println("New Stats\n");
+          Muhammed.printStats();
+        }
+        else if (empInput == 4){
+          Amaara.printStats();
+          Scanner moreTests = new Scanner(System.in);
+          System.out.println("How many more tests: ");
+          Amaara.addTests(moreTests.nextInt(),Amaara.employeeNumber,volunteerTable);
+          System.out.println("New Stats\n");
+          Amaara.printStats();
+        }
+        else if (empInput == 5){
+          John.printStats();
+          Scanner moreTests = new Scanner(System.in);
+          System.out.println("How many more tests: ");
+          John.addTests(moreTests.nextInt(),John.employeeNumber,volunteerTable);
+          System.out.println("New Stats\n");
+          John.printStats();
+        }
+        else if (empInput == 6){
+          Tony.printStats();
+          Scanner moreTests = new Scanner(System.in);
+          System.out.println("How many more tests: ");
+          Tony.addTests(moreTests.nextInt(),Tony.employeeNumber,volunteerTable);
+          System.out.println("New Stats\n");
+          Tony.printStats();
+        }
+        else{
+          System.out.println("Invalid Employee Number");
+        }
+      }
+      else{
+        System.out.println("Invalid Input");
+      }
+    }
+  }
+
+}
+
+//the base volenteer class with the methods to be inherited
+class Volunteer {
+  String volunteerName = "";
+  String role = "";
+  int testsDelivered = 0;
+  int employeeNumber = 0;
+
+  public void setTests(int tests) {
+    testsDelivered = tests;
+  }
+  public void setName(String name){
+    volunteerName = name;
+  }
+  public String getName(){
+    return volunteerName;
+  }
+  public int getTests(){
+    return testsDelivered;
+  }
+  public void addTests(int tests,int empNum, String volunteerTable[][]){
+    if(tests>0){
+      testsDelivered = testsDelivered+ tests;
+      volunteerTable[1][empNum-1] = Integer.toString(testsDelivered);
+      }
+      
+      //throw new ArithmeticException("Invalid number of tests");
+      //volunteerTable[1][empNum-1] = Integer.toString(testsDelivered);
+    //else if (tests)
+    else{
+      System.out.println("Invalid number of tests");
+      //System.out.println("Tests Debug: "+tests+"testsDelivered Debug: "+testsDelivered);
+      //System.out.println("Tests Debug: "+tests+"testsDelivered Debug: "+testsDelivered);
+    }
+      
+    // }
+  }
+  String compensation() {
+    int placeHolder = testsDelivered;
+    double totalPayment = 0;
+    if ((testsDelivered - 50) > 0) {
+      testsDelivered = testsDelivered - 50;
+      totalPayment = (50 * .15) + (testsDelivered * .2);
+    } else {
+      totalPayment = testsDelivered * .15;
+    }
+    testsDelivered = placeHolder;
+    NumberFormat GBP = NumberFormat.getCurrencyInstance(Locale.UK);
+    String payment = GBP.format(totalPayment);
+    String s = String.valueOf(payment);
+    return s;
+  }
+  //function overloading which will change the calculation depending on whehter there is a paramter for the role and returns a double storing the compensation
+  String compensation(float bonus) {
+    //System.out.println("\nCompensation for Team Leader\n");
+    int placeHolder = testsDelivered;
+    double totalPayment = 0;
+    if ((testsDelivered - 50) > 0) {
+      testsDelivered = testsDelivered - 50;
+      totalPayment = (50 * .15) + (testsDelivered * .2)*bonus;
+    } else {
+      totalPayment = (testsDelivered * .15)*bonus;
+    }
+    testsDelivered = placeHolder;
+    NumberFormat GBP = NumberFormat.getCurrencyInstance(Locale.UK);
+    //System.out.println(GBP.format(totalPayment));
+    String payment = GBP.format(totalPayment);
+    //System.out.println(payment);
+    String s = String.valueOf(payment);
+    //System.out.println(s);
+    return s;
+  }
+}
+
+class TeamMember extends Volunteer {
+  // Constructor
+  public TeamMember(String name, int tests, int emplNumb) {
+    employeeNumber = emplNumb;
+    volunteerName = name;
+    testsDelivered = tests;
+  }
+
+  void printStats() {
+    System.out.printf("Name: " + volunteerName + "\nEmployee No: "+employeeNumber+ " \nTests Delivered: " + testsDelivered + "\nCompensation: %s" + "\n\n",compensation());
+
+  }
+  void printRow(){
+    int rowsize = 12;
+    
+    String row = String.format("|%"+rowsize+"s"+"|%"+rowsize+"d"+"|%"+rowsize+"s|",volunteerName,testsDelivered,compensation());
+    System.out.println(row);
+  }
+}
+class TeamLeader extends Volunteer{
+  public TeamLeader(String name, int tests, int emplNumb,String Jrole){
+    employeeNumber = emplNumb;
+    volunteerName = name;
+    testsDelivered = tests;
+    role = Jrole;
+    //float bonus = 1.2f;
+  }
+
+
+  // double compensation() {
+  //   int placeHolder = testsDelivered;
+  //   double totalPayment = 0;
+  //   if ((testsDelivered - 50) > 0) {
+  //     testsDelivered = testsDelivered - 50;
+  //     totalPayment = (50 * .15) + (testsDelivered * .2);
+  //   } else {
+  //     totalPayment = testsDelivered * .15;
+  //   }
+  //   totalPayment = totalPayment * 1.2;
+  //   testsDelivered = placeHolder;
+  //   return totalPayment;
+  // }
+  
+  void printStats() {
+    System.out.printf("Name: " + volunteerName +"\nRole: "+ role +"\nEmployee No: "+employeeNumber+ "\nTests Delivered: " + testsDelivered + "\nCompensation:  £s"
+        + "\n\n",compensation(1.2f));
+
+  }
+  void printRow(){
+    int rowsize = 12;
+
+    String row = String.format("|%"+rowsize+"s"+"|%"+rowsize+"d"+"|%"+rowsize+"s|",volunteerName+"(TL)",testsDelivered,compensation(1.2f));
+    System.out.println(row);
+  }
+}
