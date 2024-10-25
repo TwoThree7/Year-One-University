@@ -1,0 +1,269 @@
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+// This is the help function that reads y86 binary code from a file
+unsigned int loadBinFromFile(const char *filename, unsigned char memory[],
+                             unsigned int memsize);
+
+int main(int argc, char **argv) {
+  unsigned int MAX_MEMSIZE = 4096;
+  unsigned char
+      memory[MAX_MEMSIZE]; // This array represents the 4KB memory space
+
+  char instruction[6] = {0, 0, 0, 0, 0, 0};
+  unsigned int PC = 0; // This is the initial program counter address
+
+  if (argc < 2) {
+    printf(
+        "Usage: please specify a y86 binary program file in the argument.\n");
+    return -1;
+  }
+
+  unsigned int program_size = loadBinFromFile(argv[1], memory, MAX_MEMSIZE);
+
+  if (program_size == 0)
+    return 0;
+
+  // TODO: Implement your disassembler from here
+  // At the moment, it simply display each byte from the memory.
+  while (PC < program_size) {
+    int hasRegisters = 0;
+
+    //calls a function which determines if the instruction has registers based on the opecode. This function will return a value which relates to the type of opecode 
+    hasRegisters =instructionOutput(PC, memory[PC],hasRegisters);
+    //if the function has registers but no 32 bit values it will output the appropiate registers and increment the program counter to point to the associated regeisters 
+    if (hasRegisters==1){
+      PC++;
+      registerOutput(PC,memory[PC]);
+      printf("\n");
+    }
+    //if the opecode has registers but also a 32 bit signed integer value it will output the appropiate registers and increment the program counter to point to the associated 32 bit values
+    else if (hasRegisters==2){
+      PC++;
+      registerOutput(PC,memory[PC]);
+      //printf("Debug: 32BitInt\n");
+      //Use byte 2-5 as the 32 bit singed int
+      //retrieve the next 4 bytes from the program counter
+      int singedInt = memory[PC+1] + memory[PC+2] + memory[PC+3] + memory[PC+4];
+      printf("%i\n", singedInt);
+      PC+=4;
+      //printf("\n");
+      //int byte = byteFunc(memory[PC]);
+    }
+      //if the opecode is an jmp instruction 3 will be returned the program counter is incremented throught the array memory to point to the next value
+    else if (hasRegisters==3){
+      PC++;
+      int destInt = memory[PC]+memory[PC+1]+memory[PC+2]+memory[PC+3];
+      //as the 5th byte is unused in jump instructions the 5th byte will be ignored and the program counter will be iterated to ignore this byte
+      PC+=4;
+      //output the jump destination
+      printf("%i\n",destInt);
+    }
+    else{
+      //if the instruction does not use registers or has any operands such and nop or hlt the program counter is incremented to point to next instruction
+      PC++;
+      //printf("In else while Loop Pc = %i\n", PC);
+    }
+
+    
+    //InsructionRegisters(hasRegisters);
+    //printf("In while Loop Pc = %i\n", PC);
+    PC++;
+  }
+
+  return 0;
+}
+
+/****************************************************************************
+N.B. You do not need to modify or work in this function.
+Description:
+This function reads in a y86 machine bytecode from file and
+store them in an unsigned char array.
+******************************************************************************/
+unsigned int loadBinFromFile(const char *filename, unsigned char memory[],
+                             unsigned int memsize) {
+  unsigned int bytes_read = 0;
+
+  unsigned int file_size = 0;
+
+  FILE *pfile = fopen(filename, "rb");
+
+  if (!pfile) {
+    printf("Unable to load file %s, please check if the path and name are "
+           "correct.\n",
+           filename);
+    return 0;
+  }
+
+  fseek(pfile, 0, SEEK_END);
+  file_size = ftell(pfile);
+  rewind(pfile);
+
+  if (file_size > memsize) {
+    printf("Program size exceeds memory size of %d.\n", memsize);
+    return 0;
+  }
+
+  bytes_read = fread(memory, 1, file_size, pfile);
+
+  if (bytes_read != file_size) {
+    printf("Bytes read does not match the file size.\n");
+    return 0;
+  }
+
+  fclose(pfile);
+
+  return bytes_read;
+}
+int instructionOutput(PC, byte0,hasRegisters) {
+  if (byte0 == 0x30) {
+    printf("irmovl ");
+    //as this instruction uses registers and a 32 bit singed integer value, 2 is returned
+    return 2;
+  }
+  else if (byte0==0x00){
+    printf("halt ");
+    //This instruction does not has any operands ans 0 is returned
+    return 0;
+  }
+  else if (byte0==0x10){
+    printf("Nop ");
+    return 0;
+  }
+  else if (byte0==0x90){
+    printf("Ret ");
+    return 0;
+  }
+  else if (byte0==0x20){
+    printf("rrmovl ");
+    //this instruction uses registers but no other operands and 1 is returned from the function
+    return 1;
+  }
+  else if (byte0==0x21){
+    printf("cmovle ");
+    return 1;
+  }
+  else if(byte0==0x22){
+    printf("cmovl ");
+    return 1;
+  }
+  else if(byte0==0x23){
+    printf("cmove ");
+    return 1;
+  }
+  else if(byte0==0x24){
+    printf("cmovne ");
+    return 1;
+  }
+  else if (byte0==0x25){
+    printf("cmovge ");
+    return 1;
+  }
+  else if (byte0==0x26){
+    printf("cmovg ");
+    return 1;
+  }
+  else if (byte0==0x60){
+    printf("addl ");
+    return 1;
+  }
+  else if (byte0==0x61){
+    printf("subl ");
+    return 1;
+  }
+  else if (byte0==0x62){
+    printf("andl ");
+    return 1;
+  }
+  else if (byte0==0x63){
+    printf("xorl ");
+    return 1;
+  }
+  else if (byte0==0xA0){
+    printf("pushl ");
+    return 1;
+  }
+  else if (byte0==0xB0){
+    printf("popl ");
+    return 1;
+  }
+  else if (byte0==0x40){
+    printf("rmmovl ");
+    return 2;
+  }
+  else if  (byte0==0x50){
+    printf( "mrmovl ");
+    return 2;
+  }
+  else if (byte0==0x70){
+    printf("jmp ");
+    //This is a jump instruction and a jump address is required so a 3 is returned from the function
+    return 3;
+  }
+  else if (byte0==0x71){
+    printf("jle ");
+    return 3;
+  }
+  else if (byte0==0x72){
+    printf("jl ");
+    return 3;
+  }
+  else if (byte0==0x73){
+    printf("je ");
+    return 3;
+  }
+  else if (byte0==0x74){
+    printf("jne ");
+    return 3;
+  }
+  else if (byte0==0x75){
+    printf("jge ");
+    return 3;
+  }
+  else if (byte0==0x76){
+    printf("jg ");
+    return 3;
+  }
+  else if (byte0==0x80){
+    printf("call ");
+    return 3;
+  }
+  else{
+    return 0;
+  }
+  //return 0;
+}
+int registerOutput(PC, byte1) { 
+  //initilise a string
+  char reg[16];
+  //convert the registers byte into a string such that the 2 sperate elements of the byte can be read individually 
+  sprintf(reg,"%x",byte1);
+  //iterate over the string reg looking at both the first and second element of the string and determining the register which is then outputted
+  for (int i = 0; i < 2; i++) {
+
+    if (reg[i] == '0') {
+      // print the register to the screen
+      printf("%%eax ");
+    } else if (reg[i] == '1') {
+      printf("%%ecx ");
+    } else if (reg[i] == '2') {
+      printf("%%edx ");
+    } else if (reg[i] == '3') {
+      printf("%%ebx ");
+    } else if (reg[i] == '4') {
+      printf("%%esp ");
+    } else if (reg[i] == '5') {
+      printf("%%ebp ");
+    } else if (reg[i] == '6') {
+      printf("%%esi ");
+    } else if (reg[i] == '7') {
+      printf("%%edi ");
+    }
+  }
+  //printf("\n");
+  return 0;
+}
+byteFunc(byte){
+  printf("%i ",byte);
+}
